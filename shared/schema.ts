@@ -133,6 +133,19 @@ export const worldEvents = pgTable("world_events", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// === AI IMAGE CACHE ===
+
+export const generatedImages = pgTable("generated_images", {
+  id: serial("id").primaryKey(),
+  regionId: text("region_id").notNull(),
+  cameraAngle: text("camera_angle").notNull(),
+  timeOfDay: text("time_of_day").notNull(),
+  weather: text("weather").notNull(),
+  imageBase64: text("image_base64").notNull(),
+  prompt: text("prompt").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // === SCHEMAS ===
 
 export const insertCharacterSchema = createInsertSchema(characters).omit({ 
@@ -177,6 +190,14 @@ export type WorldState = typeof worldState.$inferSelect;
 export type Entity = typeof entities.$inferSelect;
 export type MetaphysicsState = typeof metaphysicsState.$inferSelect;
 export type WorldEvent = typeof worldEvents.$inferSelect;
+
+export const insertGeneratedImageSchema = createInsertSchema(generatedImages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertGeneratedImage = z.infer<typeof insertGeneratedImageSchema>;
+export type GeneratedImage = typeof generatedImages.$inferSelect;
 
 export type CreateCharacterRequest = InsertCharacter;
 export type UpdateCharacterRequest = Partial<InsertCharacter>;

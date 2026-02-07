@@ -1,16 +1,18 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useCharacter, useUpdateCharacter } from "@/hooks/use-characters";
 import { useEnergyStatus } from "@/hooks/use-energy";
 import { useWorldState } from "@/hooks/use-world";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Layout } from "@/components/Layout";
 import { CreateCoreForm } from "@/components/CreateCoreForm";
 import { AbsorptionModal } from "@/components/AbsorptionModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Loader2, Edit2, Check, Zap, Activity, Shield, Brain, Swords, Wind, Sparkles, Eye } from "lucide-react";
+import { Loader2, Edit2, Check, Zap, Activity, Shield, Brain, Swords, Wind, Sparkles, Eye, Camera, Wand2, Mountain, Search, Bird, Bolt, UserRound } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
+import { apiRequest } from "@/lib/queryClient";
 
 import regionForest from "../assets/images/region-forest.png";
 import regionVolcano from "../assets/images/region-volcano.png";
@@ -69,6 +71,21 @@ const CHAKRA_LABELS: Record<string, { label: string; color: string }> = {
   sahasrara: { label: "Сахасрара", color: "#a855f7" },
 };
 
+const CAMERA_ICONS: Record<string, typeof Mountain> = {
+  panorama: Mountain,
+  closeup: Search,
+  aerial: Bird,
+  dramatic: Bolt,
+  pov: UserRound,
+};
+
+function getTimeCategory(timeOfDay: number): string {
+  if (timeOfDay >= 5 && timeOfDay < 12) return "morning";
+  if (timeOfDay >= 12 && timeOfDay < 17) return "day";
+  if (timeOfDay >= 17 && timeOfDay < 21) return "evening";
+  return "night";
+}
+
 export default function CharacterView() {
   const { data: character, isLoading } = useCharacter();
   const updateCharacter = useUpdateCharacter();
@@ -79,6 +96,35 @@ export default function CharacterView() {
   const [newTitle, setNewTitle] = useState("");
   const [showAbsorption, setShowAbsorption] = useState(false);
   const [showStats, setShowStats] = useState(true);
+  const [selectedAngle, setSelectedAngle] = useState("panorama");
+  const [aiImage, setAiImage] = useState<string | null>(null);
+  const [showCameraPanel, setShowCameraPanel] = useState(false);
+
+  const { data: cameraAngles } = useQuery<{ id: string; label: string }[]>({
+    queryKey: ["/api/scene/angles"],
+  });
+
+  const generateScene = useMutation({
+    mutationFn: async (params: { regionId: string; cameraAngle: string; timeOfDay: string; weather: string }) => {
+      const res = await apiRequest("POST", "/api/scene/generate", params);
+      return res.json() as Promise<{ imageBase64: string; cached: boolean; prompt: string }>;
+    },
+    onSuccess: (data) => {
+      setAiImage(`data:image/png;base64,${data.imageBase64}`);
+    },
+  });
+
+  const handleGenerate = useCallback(() => {
+    if (!character?.regionId) return;
+    const timeCategory = getTimeCategory(physicsState?.timeOfDay ?? 12);
+    const weatherType = (physicsState?.weather as any)?.type || "clear";
+    generateScene.mutate({
+      regionId: character.regionId,
+      cameraAngle: selectedAngle,
+      timeOfDay: timeCategory,
+      weather: weatherType,
+    });
+  }, [character?.regionId, selectedAngle, physicsState, generateScene]);
 
   if (isLoading) {
     return (
@@ -110,7 +156,7 @@ export default function CharacterView() {
 
   const activeAbsorption = absorptions?.find(a => !a.completed);
   const rid = character.regionId ?? "forest_ancient";
-  const regionImage = REGION_IMAGES[rid] || regionForest;
+  const regionImage = aiImage || REGION_IMAGES[rid] || regionForest;
   const regionName = REGION_LABELS[rid] || rid;
   const regionFlavor = REGION_FLAVOR[rid] || "";
 
@@ -121,26 +167,30 @@ export default function CharacterView() {
     <Layout>
       <div className="relative -mx-4 -mt-8 min-h-[calc(100vh-8rem)]" data-testid="character-view">
         <div className="absolute inset-0 overflow-hidden">
-          <motion.img
-            src={regionImage}
-            alt={regionName}
-            className="w-full h-full object-cover"
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 2, ease: "easeOut" }}
-            style={{ filter: isNight ? "brightness(0.4) saturate(0.7)" : "brightness(0.7) saturate(0.9)" }}
-          />
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={regionImage}
+              src={regionImage}
+              alt={regionName}
+              className="w-full h-full object-cover"
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+              style={{ filter: isNight ? "brightness(0.4) saturate(0.7)" : "brightness(0.7) saturate(0.9)" }}
+            />
+          </AnimatePresence>
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/40" />
         </div>
 
         <div className="relative z-10 px-4 pt-4 pb-8 min-h-[calc(100vh-8rem)] flex flex-col">
 
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-3"
+              className="flex items-center gap-3 flex-wrap"
             >
               <Badge variant="outline" className="border-white/20 text-white/60 font-tech text-xs" data-testid="badge-region-name">
                 {regionName}
@@ -151,8 +201,24 @@ export default function CharacterView() {
                   Поглощение
                 </Badge>
               )}
+              {aiImage && (
+                <Badge variant="outline" className="border-primary/40 text-primary font-tech text-xs" data-testid="badge-ai-generated">
+                  <Wand2 className="w-3 h-3 mr-1" />
+                  ИИ
+                </Badge>
+              )}
             </motion.div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowCameraPanel(!showCameraPanel)}
+                className="text-white/60 text-xs"
+                data-testid="button-toggle-camera"
+              >
+                <Camera className="w-3.5 h-3.5 mr-1" />
+                Камера
+              </Button>
               <Button
                 size="sm"
                 variant="ghost"
@@ -169,6 +235,77 @@ export default function CharacterView() {
               </Link>
             </div>
           </div>
+
+          <AnimatePresence>
+            {showCameraPanel && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mb-4 overflow-hidden"
+              >
+                <div className="bg-black/70 backdrop-blur-sm border border-white/10 rounded-xl p-4">
+                  <h3 className="font-display text-xs uppercase tracking-widest text-white/40 mb-3">
+                    <Camera className="w-3.5 h-3.5 inline mr-1" />
+                    Ракурс камеры
+                  </h3>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {(cameraAngles || []).map((angle) => {
+                      const AngleIcon = CAMERA_ICONS[angle.id];
+                      return (
+                        <Button
+                          key={angle.id}
+                          size="sm"
+                          variant={selectedAngle === angle.id ? "secondary" : "ghost"}
+                          onClick={() => setSelectedAngle(angle.id)}
+                          className="text-xs text-white/70"
+                          data-testid={`button-angle-${angle.id}`}
+                        >
+                          {AngleIcon && <AngleIcon className="w-3.5 h-3.5 mr-1.5" />}
+                          {angle.label}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      size="sm"
+                      onClick={handleGenerate}
+                      disabled={generateScene.isPending}
+                      className="bg-primary/80 text-primary-foreground"
+                      data-testid="button-generate-scene"
+                    >
+                      {generateScene.isPending ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                          Генерация...
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 className="w-3.5 h-3.5 mr-1.5" />
+                          Сгенерировать вид
+                        </>
+                      )}
+                    </Button>
+                    {aiImage && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setAiImage(null)}
+                        className="text-white/40 text-xs"
+                        data-testid="button-reset-image"
+                      >
+                        Сбросить
+                      </Button>
+                    )}
+                    {generateScene.isPending && (
+                      <span className="text-xs text-white/30 font-tech">Это может занять ~15 сек...</span>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="flex-1 flex items-end">
             <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6">

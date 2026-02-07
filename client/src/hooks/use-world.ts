@@ -38,6 +38,7 @@ export function useTravel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/characters/me"] });
       queryClient.invalidateQueries({ queryKey: ["/api/physics/entities"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/energy/status"] });
     },
   });
 }

@@ -1,6 +1,6 @@
 import express from "express";
 import { db } from "../db";
-import { regions, worldState, entities, characters, worldEvents, type Region, type WorldState, type Entity } from "@shared/schema";
+import { regions, worldState, entities, characters, worldEvents, activeAbsorptions, type Region, type WorldState, type Entity } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 
@@ -135,6 +135,38 @@ async function physicsTick() {
       lastTickAt: new Date(),
     }).where(eq(worldState.id, state.id));
 
+    const pendingAbsorptions = await db.select().from(activeAbsorptions)
+      .where(eq(activeAbsorptions.completed, false));
+
+    const now = Date.now();
+    for (const abs of pendingAbsorptions) {
+      const elapsed = (now - new Date(abs.startedAt).getTime()) / 60000;
+      if (elapsed >= abs.durationMinutes) {
+        const [updated] = await db.update(activeAbsorptions).set({ completed: true })
+          .where(and(eq(activeAbsorptions.id, abs.id), eq(activeAbsorptions.completed, false)))
+          .returning();
+
+        if (!updated) continue;
+
+        const [char] = await db.select().from(characters)
+          .where(eq(characters.id, abs.characterId));
+
+        if (char && char.regionId === abs.regionId) {
+          const energyGain = abs.durationMinutes * 2;
+          await db.update(characters).set({
+            energy: (char.energy || 0) + energyGain,
+          }).where(eq(characters.id, char.id));
+
+          await db.insert(worldEvents).values({
+            type: "absorption_complete",
+            source: "physics",
+            regionId: abs.regionId,
+            payload: { characterId: abs.characterId, energyGain, regionId: abs.regionId },
+          });
+        }
+      }
+    }
+
     const allEntities = await db.select().from(entities);
     const updatedEntities: Entity[] = [];
 
@@ -251,6 +283,13 @@ app.post("/physics/travel", async (req, res) => {
         return res.status(400).json({ error: "Region not connected" });
       }
     }
+
+    await db.update(activeAbsorptions).set({
+      completed: true,
+    }).where(and(
+      eq(activeAbsorptions.characterId, input.characterId),
+      eq(activeAbsorptions.completed, false),
+    ));
 
     const [updated] = await db.update(characters).set({
       regionId: input.targetRegionId,

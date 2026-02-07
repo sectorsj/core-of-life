@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import NotFound from "@/pages/NotFound";
 import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
+import CharacterView from "@/pages/CharacterView";
 import WorldMap from "@/pages/WorldMap";
 
 function Router() {
@@ -25,7 +26,8 @@ function Router() {
   // Auth disabled - always show Dashboard
   return (
     <Switch>
-      <Route path="/" component={Dashboard} />
+      <Route path="/" component={CharacterView} />
+      <Route path="/status" component={Dashboard} />
       <Route path="/world" component={WorldMap} />
       <Route path="/landing" component={Landing} />
       <Route component={NotFound} />

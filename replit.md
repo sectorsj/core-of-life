@@ -52,7 +52,8 @@ client/           # React frontend
   src/
     components/   # UI components (ChakraVisualizer, DnaHelix, etc.)
     hooks/        # Custom React hooks (use-auth, use-characters, use-energy)
-    pages/        # Route pages (Landing, Dashboard, NotFound)
+    pages/        # Route pages (CharacterView, Dashboard/Status, WorldMap, Landing, NotFound)
+    assets/images/ # Manhwa-style region illustrations (region-*.png)
     lib/          # Utilities (queryClient, utils)
 server/           # Express backend
   routes.ts       # API route handlers

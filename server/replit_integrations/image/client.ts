@@ -18,11 +18,23 @@ export async function generateImageBuffer(
   const response = await openai.images.generate({
     model: "gpt-image-1",
     prompt,
+    n: 1,
     size,
-    response_format: "b64_json",
-  } as any);
-  const base64 = response.data[0]?.b64_json ?? "";
-  return Buffer.from(base64, "base64");
+  });
+
+  const imageData = response.data[0];
+
+  if (imageData?.b64_json) {
+    return Buffer.from(imageData.b64_json, "base64");
+  }
+
+  if (imageData?.url) {
+    const fetchRes = await fetch(imageData.url);
+    const arrayBuffer = await fetchRes.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  }
+
+  throw new Error("No image data returned from API");
 }
 
 /**

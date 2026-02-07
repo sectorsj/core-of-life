@@ -546,6 +546,36 @@ export default function WorldMap() {
                   <stop offset="0%" stopColor="transparent" />
                   <stop offset="100%" stopColor={isNight ? "rgba(0,0,10,0.5)" : "transparent"} />
                 </radialGradient>
+
+                <radialGradient id="oceanGrad" cx="50%" cy="40%" r="65%">
+                  <stop offset="0%" stopColor="#0a2a3a" />
+                  <stop offset="60%" stopColor="#061820" />
+                  <stop offset="100%" stopColor="#030d14" />
+                </radialGradient>
+                <linearGradient id="landGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#1a2e1a" />
+                  <stop offset="50%" stopColor="#1f321c" />
+                  <stop offset="100%" stopColor="#2a3020" />
+                </linearGradient>
+                <linearGradient id="sandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#3a3020" />
+                  <stop offset="100%" stopColor="#2e2818" />
+                </linearGradient>
+                <linearGradient id="mountainGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+                  <stop offset="0%" stopColor="#3a3a44" />
+                  <stop offset="100%" stopColor="#25252e" />
+                </linearGradient>
+                <linearGradient id="riverFlow" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#0e4a6a" />
+                  <stop offset="100%" stopColor="#0a3850" />
+                </linearGradient>
+                <radialGradient id="lakeGrad" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="#104060" />
+                  <stop offset="100%" stopColor="#0a2a40" />
+                </radialGradient>
+                <filter id="terrainShadow">
+                  <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#000000" floodOpacity="0.4" />
+                </filter>
                 {regions?.map(region => {
                   const poly = REGION_POLYGONS[region.id];
                   if (!poly) return null;
@@ -568,6 +598,161 @@ export default function WorldMap() {
               </defs>
 
               <g transform={`translate(${pan.x / zoom}, ${pan.y / zoom}) scale(${zoom})`} style={{ transformOrigin: "525px 260px" }}>
+
+                {/* ====== TERRAIN BASE LAYER ====== */}
+                <g className="pointer-events-none">
+                <rect x="-50" y="-50" width="1150" height="620" fill="url(#oceanGrad)" />
+
+                <g className="pointer-events-none" opacity="0.15">
+                  <circle cx="200" cy="100" r="2" fill="#1a5a8a" opacity="0.5" />
+                  <circle cx="950" cy="400" r="3" fill="#1a5a8a" opacity="0.4" />
+                  <circle cx="100" cy="450" r="2" fill="#1a5a8a" opacity="0.3" />
+                  <circle cx="500" cy="40" r="1.5" fill="#1a5a8a" opacity="0.5" />
+                  <circle cx="850" cy="80" r="2" fill="#1a5a8a" opacity="0.4" />
+                  <path d="M -20 480 Q 200 470, 400 485 Q 600 500, 800 475 Q 950 465, 1100 480" fill="none" stroke="#0a3050" strokeWidth="1" opacity="0.3" />
+                  <path d="M -30 500 Q 250 490, 500 505 Q 750 515, 1050 495" fill="none" stroke="#0a3050" strokeWidth="0.8" opacity="0.2" />
+                </g>
+
+                <polygon
+                  points="30,160 60,110 120,80 200,60 300,50 380,65 450,55 520,70 600,60 700,35 780,20 860,30 940,50 1000,90 1020,140 1010,200 1020,280 1010,350 990,420 960,460 900,480 820,490 740,485 650,495 560,500 470,495 380,490 290,485 200,490 130,480 70,450 40,400 25,340 20,280 25,220"
+                  fill="url(#landGrad)"
+                  filter="url(#terrainShadow)"
+                  strokeLinejoin="round"
+                />
+
+                <polygon
+                  points="760,170 800,145 860,140 920,160 970,200 990,260 985,330 960,390 920,430 870,450 820,440 790,400 770,340 755,280 750,220"
+                  fill="url(#sandGrad)"
+                  opacity="0.7"
+                  strokeLinejoin="round"
+                />
+
+                <polygon
+                  points="600,100 650,75 720,70 770,90 790,130 780,170 740,200 680,210 630,190 600,150"
+                  fill="url(#mountainGrad)"
+                  opacity="0.6"
+                  strokeLinejoin="round"
+                />
+
+                <polygon
+                  points="400,100 440,85 490,90 520,110 530,145 510,180 470,200 430,195 400,170 390,135"
+                  fill="#152515"
+                  opacity="0.5"
+                  strokeLinejoin="round"
+                />
+
+                <polygon
+                  points="50,200 90,175 140,170 190,185 210,230 200,280 170,310 130,330 80,320 45,280"
+                  fill="#101825"
+                  opacity="0.6"
+                  strokeLinejoin="round"
+                />
+
+                <polygon
+                  points="280,380 310,360 350,370 380,400 400,440 390,470 350,485 310,475 280,445 270,410"
+                  fill="#0e200e"
+                  opacity="0.4"
+                  strokeLinejoin="round"
+                />
+
+                {/* Islands */}
+                <polygon
+                  points="10,100 30,80 60,85 70,105 55,120 25,118"
+                  fill="url(#landGrad)"
+                  filter="url(#terrainShadow)"
+                  opacity="0.7"
+                  strokeLinejoin="round"
+                />
+                <polygon
+                  points="980,430 1000,415 1030,420 1040,445 1020,460 990,455"
+                  fill="url(#landGrad)"
+                  filter="url(#terrainShadow)"
+                  opacity="0.7"
+                  strokeLinejoin="round"
+                />
+                <polygon
+                  points="920,500 945,490 970,495 975,510 955,520 930,515"
+                  fill="url(#landGrad)"
+                  filter="url(#terrainShadow)"
+                  opacity="0.6"
+                  strokeLinejoin="round"
+                />
+
+                {/* Rivers */}
+                <path
+                  d="M 530,110 Q 510,150, 490,200 Q 475,240, 460,280 Q 450,320, 455,360 Q 460,400, 470,440 Q 478,470, 485,495"
+                  fill="none"
+                  stroke="url(#riverFlow)"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  opacity="0.8"
+                />
+                <path
+                  d="M 460,280 Q 400,290, 340,285 Q 290,280, 250,300 Q 210,320, 180,350"
+                  fill="none"
+                  stroke="url(#riverFlow)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  opacity="0.7"
+                />
+                <path
+                  d="M 490,200 Q 550,210, 610,230 Q 660,245, 700,260 Q 740,275, 770,290"
+                  fill="none"
+                  stroke="url(#riverFlow)"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  opacity="0.6"
+                />
+
+                {/* Lakes */}
+                <ellipse
+                  cx="350" cy="150"
+                  rx="25" ry="15"
+                  fill="url(#lakeGrad)"
+                  opacity="0.8"
+                />
+                <ellipse
+                  cx="150" cy="250"
+                  rx="18" ry="12"
+                  fill="url(#lakeGrad)"
+                  opacity="0.7"
+                />
+                <ellipse
+                  cx="680" cy="320"
+                  rx="15" ry="10"
+                  fill="url(#lakeGrad)"
+                  opacity="0.6"
+                />
+
+                {/* Coastline detail */}
+                <polygon
+                  points="30,160 60,110 120,80 200,60 300,50 380,65 450,55 520,70 600,60 700,35 780,20 860,30 940,50 1000,90 1020,140 1010,200 1020,280 1010,350 990,420 960,460 900,480 820,490 740,485 650,495 560,500 470,495 380,490 290,485 200,490 130,480 70,450 40,400 25,340 20,280 25,220"
+                  fill="none"
+                  stroke="#1a5a6a"
+                  strokeWidth="1.5"
+                  strokeLinejoin="round"
+                  opacity="0.4"
+                />
+
+                {/* Mountain ridge markers */}
+                <g className="pointer-events-none" opacity="0.3">
+                  <polygon points="640,95 650,75 660,95" fill="#4a4a55" />
+                  <polygon points="670,90 680,70 690,90" fill="#4a4a55" />
+                  <polygon points="700,88 710,68 720,88" fill="#4a4a55" />
+                  <polygon points="730,92 740,72 750,92" fill="#4a4a55" />
+                </g>
+
+                {/* Terrain texture dots */}
+                <g className="pointer-events-none" opacity="0.1">
+                  {Array.from({ length: 40 }, (_, i) => {
+                    const tx = 80 + (i * 23) % 880;
+                    const ty = 80 + (i * 37) % 380;
+                    return <circle key={`td-${i}`} cx={tx} cy={ty} r={1} fill="#4a6a4a" />;
+                  })}
+                </g>
+
+                {/* ====== END TERRAIN LAYER ====== */}
+                </g>
 
                 {regions?.map(region => {
                   const poly = REGION_POLYGONS[region.id];

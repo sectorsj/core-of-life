@@ -80,14 +80,157 @@ const REGION_POLYGONS: Record<string, { points: number[][]; center: number[] }> 
   },
 };
 
-const ENTITY_ICONS: Record<string, { symbol: string; color: string }> = {
-  creature: { symbol: "M", color: "#ef4444" },
-  object: { symbol: "O", color: "#22c55e" },
-  hazard: { symbol: "!", color: "#f59e0b" },
+type RegionStructure = {
+  buildings: Array<{ x: number; y: number; w: number; h: number; label: string; type: "settlement" | "temple" | "tower" | "ruin" | "cave" | "well" }>;
+  paths: Array<{ points: number[][] }>;
+  landmarks: Array<{ x: number; y: number; label: string; shape: "tree" | "rock" | "water" | "crystal" | "flame" | "portal" | "skull" }>;
 };
 
-const MIN_ZOOM = 0.5;
-const MAX_ZOOM = 2.5;
+const REGION_DETAILS: Record<string, RegionStructure> = {
+  forest_ancient: {
+    buildings: [
+      { x: 440, y: 360, w: 18, h: 14, label: "Хижина друида", type: "settlement" },
+      { x: 500, y: 400, w: 14, h: 12, label: "Алтарь леса", type: "temple" },
+      { x: 470, y: 430, w: 12, h: 10, label: "Наблюдательная", type: "tower" },
+    ],
+    paths: [
+      { points: [[440,374],[470,390],[500,406]] },
+      { points: [[470,390],[470,430]] },
+    ],
+    landmarks: [
+      { x: 420, y: 340, label: "Великий дуб", shape: "tree" },
+      { x: 530, y: 350, label: "Мшистые камни", shape: "rock" },
+      { x: 490, y: 445, label: "Ручей жизни", shape: "water" },
+      { x: 450, y: 395, label: "Грибная поляна", shape: "tree" },
+    ],
+  },
+  volcano_dormant: {
+    buildings: [
+      { x: 650, y: 210, w: 16, h: 14, label: "Кузница огня", type: "settlement" },
+      { x: 700, y: 250, w: 14, h: 12, label: "Храм пламени", type: "temple" },
+      { x: 620, y: 240, w: 12, h: 10, label: "Руины стражей", type: "ruin" },
+    ],
+    paths: [
+      { points: [[632,245],[650,224],[670,220],[700,256]] },
+    ],
+    landmarks: [
+      { x: 680, y: 180, label: "Кратер", shape: "flame" },
+      { x: 730, y: 230, label: "Лавовое озеро", shape: "flame" },
+      { x: 610, y: 270, label: "Обсидиановый пик", shape: "rock" },
+    ],
+  },
+  crystal_cave: {
+    buildings: [
+      { x: 245, y: 360, w: 16, h: 12, label: "Грот знаний", type: "cave" },
+      { x: 280, y: 400, w: 14, h: 12, label: "Резонансный зал", type: "temple" },
+      { x: 220, y: 390, w: 12, h: 10, label: "Покинутый лагерь", type: "ruin" },
+    ],
+    paths: [
+      { points: [[245,372],[260,385],[280,406]] },
+      { points: [[232,395],[260,385]] },
+    ],
+    landmarks: [
+      { x: 300, y: 340, label: "Кристальный шпиль", shape: "crystal" },
+      { x: 210, y: 420, label: "Аметистовая жила", shape: "crystal" },
+      { x: 270, y: 350, label: "Эхо-колодец", shape: "water" },
+    ],
+  },
+  sky_sanctuary: {
+    buildings: [
+      { x: 750, y: 80, w: 16, h: 12, label: "Парящий храм", type: "temple" },
+      { x: 790, y: 110, w: 14, h: 10, label: "Башня ветров", type: "tower" },
+      { x: 720, y: 100, w: 12, h: 10, label: "Причал облаков", type: "settlement" },
+    ],
+    paths: [
+      { points: [[732,105],[750,92],[770,90],[790,115]] },
+    ],
+    landmarks: [
+      { x: 760, y: 50, label: "Врата неба", shape: "portal" },
+      { x: 810, y: 80, label: "Облачный мост", shape: "water" },
+      { x: 730, y: 130, label: "Сад ветров", shape: "tree" },
+    ],
+  },
+  swamp_mist: {
+    buildings: [
+      { x: 340, y: 200, w: 16, h: 12, label: "Хижина ведьмы", type: "settlement" },
+      { x: 370, y: 250, w: 14, h: 12, label: "Жертвенник", type: "temple" },
+      { x: 300, y: 230, w: 12, h: 10, label: "Затонувшие руины", type: "ruin" },
+    ],
+    paths: [
+      { points: [[340,212],[350,230],[370,256]] },
+      { points: [[312,235],[350,230]] },
+    ],
+    landmarks: [
+      { x: 400, y: 180, label: "Гнилая топь", shape: "water" },
+      { x: 290, y: 260, label: "Костяная роща", shape: "skull" },
+      { x: 360, y: 170, label: "Блуждающий огонь", shape: "flame" },
+    ],
+  },
+  desert_crimson: {
+    buildings: [
+      { x: 860, y: 290, w: 18, h: 14, label: "Город песков", type: "settlement" },
+      { x: 900, y: 340, w: 14, h: 12, label: "Обелиск солнца", type: "temple" },
+      { x: 820, y: 330, w: 12, h: 10, label: "Оазис", type: "well" },
+    ],
+    paths: [
+      { points: [[860,304],[870,320],[900,346]] },
+      { points: [[832,335],[870,320]] },
+    ],
+    landmarks: [
+      { x: 920, y: 270, label: "Красные дюны", shape: "rock" },
+      { x: 800, y: 280, label: "Мираж", shape: "portal" },
+      { x: 880, y: 370, label: "Песчаная буря", shape: "flame" },
+    ],
+  },
+  abyss_deep: {
+    buildings: [
+      { x: 125, y: 305, w: 16, h: 12, label: "Врата бездны", type: "cave" },
+      { x: 155, y: 350, w: 14, h: 12, label: "Алтарь тьмы", type: "temple" },
+      { x: 100, y: 340, w: 12, h: 10, label: "Шёпот теней", type: "ruin" },
+    ],
+    paths: [
+      { points: [[125,317],[135,335],[155,356]] },
+      { points: [[112,345],[135,335]] },
+    ],
+    landmarks: [
+      { x: 170, y: 280, label: "Разлом", shape: "portal" },
+      { x: 80, y: 370, label: "Тёмные воды", shape: "water" },
+      { x: 150, y: 390, label: "Кости древних", shape: "skull" },
+    ],
+  },
+};
+
+const REGION_ICONS: Record<string, string> = {
+  forest_ancient: "M 0,-8 L 3,-2 L 8,-2 L 4,2 L 5,8 L 0,5 L -5,8 L -4,2 L -8,-2 L -3,-2 Z",
+  volcano_dormant: "M 0,-9 L 6,7 L -6,7 Z",
+  crystal_cave: "M 0,-8 L 5,-3 L 5,4 L 0,8 L -5,4 L -5,-3 Z",
+  sky_sanctuary: "M 0,-8 C 6,-6 8,0 4,5 L 0,8 L -4,5 C -8,0 -6,-6 0,-8 Z",
+  swamp_mist: "M -6,-5 L 6,-5 L 8,0 L 6,5 L -6,5 L -8,0 Z",
+  desert_crimson: "M -7,-4 L 7,-4 L 9,0 L 7,4 L -7,4 L -9,0 Z",
+  abyss_deep: "M 0,-9 L 3,-3 L 9,-3 L 4,1 L 6,8 L 0,4 L -6,8 L -4,1 L -9,-3 L -3,-3 Z",
+};
+
+const BIOME_ICON_COLOR: Record<string, string> = {
+  forest: "#4ade80",
+  volcanic: "#f87171",
+  underground: "#a78bfa",
+  aerial: "#67e8f9",
+  swamp: "#a3e635",
+  desert: "#fbbf24",
+  abyss: "#818cf8",
+};
+
+const LOD_FAR = 0.75;
+const LOD_CLOSE = 1.5;
+
+const ENTITY_MARKER_COLORS: Record<string, string> = {
+  creature: "#ef4444",
+  object: "#22c55e",
+  hazard: "#f59e0b",
+};
+
+const MIN_ZOOM = 0.4;
+const MAX_ZOOM = 3.0;
 const ZOOM_STEP = 0.15;
 
 function getTimeLabel(time: number): string {
@@ -103,24 +246,133 @@ function formatTime(time: number): string {
   return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
 }
 
-function polygonCenter(points: number[][]): number[] {
-  let cx = 0, cy = 0;
-  for (const [x, y] of points) { cx += x; cy += y; }
-  return [cx / points.length, cy / points.length];
-}
-
 function pointsToString(points: number[][]): string {
   return points.map(([x, y]) => `${x},${y}`).join(" ");
 }
 
+function pathToD(points: number[][]): string {
+  return points.map((p, i) => `${i === 0 ? "M" : "L"} ${p[0]} ${p[1]}`).join(" ");
+}
+
 function distributeEntitiesInRegion(center: number[], count: number, index: number): { x: number; y: number } {
   const angleStep = (2 * Math.PI) / Math.max(count, 1);
-  const angle = angleStep * index;
-  const radius = 30 + (index % 2) * 15;
+  const angle = angleStep * index - Math.PI / 2;
+  const radius = 28 + (index % 2) * 14;
   return {
     x: center[0] + Math.cos(angle) * radius,
     y: center[1] + Math.sin(angle) * radius,
   };
+}
+
+function renderLandmarkShape(shape: string, x: number, y: number, color: string): JSX.Element {
+  switch (shape) {
+    case "tree":
+      return (
+        <g>
+          <line x1={x} y1={y + 4} x2={x} y2={y + 7} stroke="#8B6914" strokeWidth="1.5" />
+          <circle cx={x} cy={y + 1} r={4} fill="#2d6a1e" opacity={0.7} />
+          <circle cx={x - 2} cy={y} r={3} fill="#3a8c2a" opacity={0.6} />
+          <circle cx={x + 2} cy={y - 1} r={3} fill="#4aa83a" opacity={0.5} />
+        </g>
+      );
+    case "rock":
+      return (
+        <polygon points={`${x-4},${y+4} ${x-2},${y-3} ${x+1},${y-4} ${x+4},${y-1} ${x+3},${y+4}`} fill="#6b7280" opacity={0.6} stroke="#9ca3af" strokeWidth="0.5" />
+      );
+    case "water":
+      return (
+        <g opacity={0.6}>
+          <ellipse cx={x} cy={y} rx={6} ry={3} fill="#3b82f6" opacity={0.4} />
+          <path d={`M ${x-5} ${y} Q ${x-2} ${y-2} ${x} ${y} Q ${x+2} ${y+2} ${x+5} ${y}`} fill="none" stroke="#60a5fa" strokeWidth="1" />
+        </g>
+      );
+    case "crystal":
+      return (
+        <g opacity={0.7}>
+          <polygon points={`${x},${y-5} ${x+3},${y+2} ${x},${y+5} ${x-3},${y+2}`} fill="#a78bfa" opacity={0.5} stroke="#c4b5fd" strokeWidth="0.5" />
+          <line x1={x} y1={y-5} x2={x+1} y2={y} stroke="#ddd6fe" strokeWidth="0.5" opacity={0.8} />
+        </g>
+      );
+    case "flame":
+      return (
+        <g opacity={0.7}>
+          <ellipse cx={x} cy={y+2} rx={3} ry={1.5} fill="#fbbf24" opacity={0.3} />
+          <path d={`M ${x} ${y+3} Q ${x-2} ${y} ${x} ${y-5} Q ${x+2} ${y} ${x} ${y+3}`} fill="#f97316" opacity={0.6} />
+          <path d={`M ${x} ${y+2} Q ${x-1} ${y} ${x} ${y-3} Q ${x+1} ${y} ${x} ${y+2}`} fill="#fbbf24" opacity={0.7} />
+        </g>
+      );
+    case "portal":
+      return (
+        <g opacity={0.6}>
+          <ellipse cx={x} cy={y} rx={4} ry={5} fill="none" stroke="#a78bfa" strokeWidth="1" strokeDasharray="2,1" />
+          <ellipse cx={x} cy={y} rx={2} ry={3} fill="#7c3aed" opacity={0.3} />
+        </g>
+      );
+    case "skull":
+      return (
+        <g opacity={0.6}>
+          <circle cx={x} cy={y-1} r={4} fill="#d1d5db" opacity={0.5} stroke="#9ca3af" strokeWidth="0.5" />
+          <circle cx={x-1.5} cy={y-2} r={1} fill="#1f2937" />
+          <circle cx={x+1.5} cy={y-2} r={1} fill="#1f2937" />
+          <path d={`M ${x-1.5} ${y+1} L ${x+1.5} ${y+1}`} stroke="#1f2937" strokeWidth="0.5" />
+        </g>
+      );
+    default:
+      return <circle cx={x} cy={y} r={3} fill={color} opacity={0.5} />;
+  }
+}
+
+function renderBuildingShape(type: string, x: number, y: number, w: number, h: number): JSX.Element {
+  switch (type) {
+    case "settlement":
+      return (
+        <g>
+          <rect x={x} y={y} width={w} height={h} fill="#78716c" opacity={0.5} stroke="#a8a29e" strokeWidth="0.5" rx={1} />
+          <polygon points={`${x},${y} ${x + w/2},${y - 5} ${x + w},${y}`} fill="#a8a29e" opacity={0.5} />
+          <rect x={x + w/2 - 2} y={y + h - 5} width={4} height={5} fill="#57534e" opacity={0.6} />
+        </g>
+      );
+    case "temple":
+      return (
+        <g>
+          <rect x={x + 1} y={y + 3} width={w - 2} height={h - 3} fill="#78716c" opacity={0.5} stroke="#a8a29e" strokeWidth="0.5" />
+          <polygon points={`${x - 1},${y + 3} ${x + w/2},${y - 4} ${x + w + 1},${y + 3}`} fill="#d4af37" opacity={0.4} stroke="#fbbf24" strokeWidth="0.5" />
+          <line x1={x + w/2} y1={y - 4} x2={x + w/2} y2={y - 7} stroke="#fbbf24" strokeWidth="0.8" />
+        </g>
+      );
+    case "tower":
+      return (
+        <g>
+          <rect x={x + w/2 - 3} y={y} width={6} height={h + 3} fill="#78716c" opacity={0.5} stroke="#a8a29e" strokeWidth="0.5" />
+          <polygon points={`${x + w/2 - 4},${y} ${x + w/2},${y - 5} ${x + w/2 + 4},${y}`} fill="#a8a29e" opacity={0.5} />
+          <rect x={x + w/2 - 1} y={y + 2} width={2} height={2} fill="#fbbf24" opacity={0.5} />
+        </g>
+      );
+    case "ruin":
+      return (
+        <g opacity={0.4}>
+          <rect x={x} y={y + 2} width={w} height={h - 2} fill="#57534e" stroke="#78716c" strokeWidth="0.5" rx={0} strokeDasharray="2,1" />
+          <line x1={x + 2} y1={y} x2={x + 2} y2={y + h} stroke="#78716c" strokeWidth="1" />
+          <line x1={x + w - 2} y1={y + 1} x2={x + w - 2} y2={y + h} stroke="#78716c" strokeWidth="1" />
+        </g>
+      );
+    case "cave":
+      return (
+        <g>
+          <ellipse cx={x + w/2} cy={y + h/2} rx={w/2 + 2} ry={h/2 + 1} fill="#44403c" opacity={0.5} />
+          <ellipse cx={x + w/2} cy={y + h/2 + 1} rx={w/3} ry={h/3} fill="#1c1917" opacity={0.6} />
+        </g>
+      );
+    case "well":
+      return (
+        <g>
+          <circle cx={x + w/2} cy={y + h/2} r={w/2} fill="none" stroke="#a8a29e" strokeWidth="1" opacity={0.5} />
+          <circle cx={x + w/2} cy={y + h/2} r={w/3} fill="#3b82f6" opacity={0.3} />
+        </g>
+      );
+    default:
+      return <rect x={x} y={y} width={w} height={h} fill="#78716c" opacity={0.4} rx={1} />;
+  }
 }
 
 export default function WorldMap() {
@@ -136,6 +388,8 @@ export default function WorldMap() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const svgContainerRef = useRef<HTMLDivElement>(null);
+
+  const lod: "far" | "medium" | "close" = zoom < LOD_FAR ? "far" : zoom > LOD_CLOSE ? "close" : "medium";
 
   const handleZoomIn = useCallback(() => {
     setZoom(z => Math.min(z + ZOOM_STEP, MAX_ZOOM));
@@ -205,6 +459,8 @@ export default function WorldMap() {
   const WeatherIcon = worldState ? (WEATHER_ICONS[worldState.weather?.type || "clear"] || Sun) : Sun;
 
   const viewBox = `0 0 1050 520`;
+
+  const lodLabel = lod === "far" ? "Обзор" : lod === "close" ? "Детали" : "Карта";
 
   return (
     <Layout>
@@ -279,6 +535,13 @@ export default function WorldMap() {
                     <feMergeNode in="SourceGraphic" />
                   </feMerge>
                 </filter>
+                <filter id="softGlow">
+                  <feGaussianBlur stdDeviation="1.5" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
                 <radialGradient id="nightOverlay" cx="50%" cy="50%" r="50%">
                   <stop offset="0%" stopColor="transparent" />
                   <stop offset="100%" stopColor={isNight ? "rgba(0,0,10,0.5)" : "transparent"} />
@@ -286,12 +549,20 @@ export default function WorldMap() {
                 {regions?.map(region => {
                   const poly = REGION_POLYGONS[region.id];
                   if (!poly) return null;
-                  const c = poly.center;
                   return (
                     <radialGradient key={`grad-${region.id}`} id={`regionGrad-${region.id}`} cx="50%" cy="50%" r="60%">
                       <stop offset="0%" stopColor={region.color} stopOpacity="0.9" />
                       <stop offset="100%" stopColor={region.color} stopOpacity="0.4" />
                     </radialGradient>
+                  );
+                })}
+                {regions?.map(region => {
+                  const poly = REGION_POLYGONS[region.id];
+                  if (!poly) return null;
+                  return (
+                    <clipPath key={`clip-${region.id}`} id={`regionClip-${region.id}`}>
+                      <polygon points={pointsToString(poly.points)} />
+                    </clipPath>
                   );
                 })}
               </defs>
@@ -315,7 +586,7 @@ export default function WorldMap() {
                           x2={connPoly.center[0]}
                           y2={connPoly.center[1]}
                           stroke="rgba(16,185,129,0.25)"
-                          strokeWidth="1.5"
+                          strokeWidth={lod === "far" ? "1" : "1.5"}
                           strokeDasharray="6,4"
                         />
                       );
@@ -333,93 +604,223 @@ export default function WorldMap() {
                   const isSelected = selectedRegion?.id === region.id;
                   const entitiesInRegion = (allEntities || []).filter(e => e.regionId === region.id);
                   const entityCount = entitiesInRegion.length;
+                  const details = REGION_DETAILS[region.id];
+                  const biomeColor = BIOME_ICON_COLOR[region.biome] || "#ffffff";
 
                   return (
                     <g key={region.id} onClick={() => setSelectedRegion(region)} className="cursor-pointer" data-testid={`map-region-${region.id}`}>
+
                       <polygon
                         points={pointsToString(poly.points)}
-                        fill={`url(#regionGrad-${region.id})`}
-                        opacity={isCurrent ? 0.9 : isConnected ? 0.65 : 0.3}
+                        fill={lod === "far" ? region.color : `url(#regionGrad-${region.id})`}
+                        opacity={lod === "far"
+                          ? (isCurrent ? 0.3 : 0.1)
+                          : (isCurrent ? 0.9 : isConnected ? 0.65 : 0.3)
+                        }
                         stroke={isCurrent ? "#10b981" : isSelected ? "#f59e0b" : isConnected ? "#10b981" : "#ffffff"}
-                        strokeWidth={isCurrent ? 2.5 : isSelected ? 2 : 0.8}
-                        strokeOpacity={isCurrent ? 1 : isConnected ? 0.6 : 0.2}
-                        filter={isCurrent ? "url(#glow)" : undefined}
+                        strokeWidth={lod === "far" ? 0.5 : (isCurrent ? 2.5 : isSelected ? 2 : 0.8)}
+                        strokeOpacity={isCurrent ? (lod === "far" ? 0.5 : 1) : isConnected ? 0.6 : (lod === "far" ? 0.1 : 0.2)}
+                        filter={isCurrent && lod !== "far" ? "url(#glow)" : undefined}
                         strokeLinejoin="round"
                       />
 
-                      <text
-                        x={poly.center[0]}
-                        y={poly.center[1] - 12}
-                        textAnchor="middle"
-                        fill="white"
-                        fontSize="11"
-                        fontWeight="bold"
-                        className="font-serif pointer-events-none select-none"
-                        style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}
-                      >
-                        {region.nameRu}
-                      </text>
-                      <text
-                        x={poly.center[0]}
-                        y={poly.center[1] + 4}
-                        textAnchor="middle"
-                        fill="rgba(255,255,255,0.5)"
-                        fontSize="8"
-                        className="font-mono pointer-events-none select-none"
-                      >
-                        {ENERGY_TYPE_RU[region.energyType] || region.energyType} | {entityCount} сущ.
-                      </text>
-
-                      {isCurrent && (
-                        <circle
-                          cx={poly.center[0]}
-                          cy={poly.center[1] + 18}
-                          r={4}
-                          fill="#10b981"
-                          className="animate-pulse"
-                        />
-                      )}
-
-                      {isConnected && !isCurrent && (
-                        <text
-                          x={poly.center[0]}
-                          y={poly.center[1] + 18}
-                          textAnchor="middle"
-                          fill="#10b981"
-                          fontSize="8"
-                          className="pointer-events-none select-none"
-                        >
-                          Доступно
-                        </text>
-                      )}
-
-                      {entitiesInRegion.map((entity, idx) => {
-                        const pos = distributeEntitiesInRegion(poly.center, entityCount, idx);
-                        const iconData = ENTITY_ICONS[entity.type] || ENTITY_ICONS.creature;
-                        return (
-                          <g key={entity.id} filter="url(#entityGlow)">
+                      {lod === "far" && (
+                        <g filter={isCurrent ? "url(#glow)" : "url(#softGlow)"}>
+                          <circle
+                            cx={poly.center[0]}
+                            cy={poly.center[1]}
+                            r={12}
+                            fill={`${region.color}88`}
+                            stroke={isCurrent ? "#10b981" : isSelected ? "#f59e0b" : biomeColor}
+                            strokeWidth={isCurrent ? 2 : 1}
+                          />
+                          <path
+                            d={REGION_ICONS[region.id] || "M -5,-5 L 5,-5 L 5,5 L -5,5 Z"}
+                            transform={`translate(${poly.center[0]}, ${poly.center[1]}) scale(0.8)`}
+                            fill={biomeColor}
+                            opacity={0.9}
+                          />
+                          <text
+                            x={poly.center[0]}
+                            y={poly.center[1] + 22}
+                            textAnchor="middle"
+                            fill="white"
+                            fontSize="9"
+                            fontWeight="bold"
+                            className="font-serif pointer-events-none select-none"
+                            style={{ textShadow: "0 1px 3px rgba(0,0,0,0.9)" }}
+                          >
+                            {region.nameRu}
+                          </text>
+                          {isCurrent && (
                             <circle
-                              cx={pos.x}
-                              cy={pos.y}
-                              r={6}
-                              fill={`${iconData.color}33`}
-                              stroke={iconData.color}
-                              strokeWidth="1"
+                              cx={poly.center[0]}
+                              cy={poly.center[1] + 32}
+                              r={3}
+                              fill="#10b981"
+                              className="animate-pulse"
                             />
+                          )}
+                        </g>
+                      )}
+
+                      {lod === "medium" && (
+                        <>
+                          <text
+                            x={poly.center[0]}
+                            y={poly.center[1] - 12}
+                            textAnchor="middle"
+                            fill="white"
+                            fontSize="11"
+                            fontWeight="bold"
+                            className="font-serif pointer-events-none select-none"
+                            style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}
+                          >
+                            {region.nameRu}
+                          </text>
+                          <text
+                            x={poly.center[0]}
+                            y={poly.center[1] + 4}
+                            textAnchor="middle"
+                            fill="rgba(255,255,255,0.5)"
+                            fontSize="8"
+                            className="font-mono pointer-events-none select-none"
+                          >
+                            {ENERGY_TYPE_RU[region.energyType] || region.energyType} | {entityCount} сущ.
+                          </text>
+
+                          {isCurrent && (
+                            <circle
+                              cx={poly.center[0]}
+                              cy={poly.center[1] + 18}
+                              r={4}
+                              fill="#10b981"
+                              className="animate-pulse"
+                            />
+                          )}
+
+                          {isConnected && !isCurrent && (
                             <text
-                              x={pos.x}
-                              y={pos.y + 3.5}
+                              x={poly.center[0]}
+                              y={poly.center[1] + 18}
                               textAnchor="middle"
-                              fill={iconData.color}
+                              fill="#10b981"
                               fontSize="8"
-                              fontWeight="bold"
                               className="pointer-events-none select-none"
                             >
-                              {iconData.symbol}
+                              Доступно
                             </text>
+                          )}
+
+                          {entitiesInRegion.map((entity, idx) => {
+                            const pos = distributeEntitiesInRegion(poly.center, entityCount, idx);
+                            const markerColor = ENTITY_MARKER_COLORS[entity.type] || "#ef4444";
+                            return (
+                              <g key={entity.id} filter="url(#entityGlow)">
+                                <circle cx={pos.x} cy={pos.y} r={5} fill={`${markerColor}33`} stroke={markerColor} strokeWidth="1" />
+                                <circle cx={pos.x} cy={pos.y} r={2} fill={markerColor} opacity={0.8} />
+                              </g>
+                            );
+                          })}
+                        </>
+                      )}
+
+                      {lod === "close" && details && (
+                        <>
+                          <g clipPath={`url(#regionClip-${region.id})`} className="pointer-events-none">
+                            {details.paths.map((p, i) => (
+                              <path
+                                key={`dpath-${region.id}-${i}`}
+                                d={pathToD(p.points)}
+                                fill="none"
+                                stroke="rgba(255,255,255,0.15)"
+                                strokeWidth="1.5"
+                                strokeDasharray="3,2"
+                                strokeLinecap="round"
+                              />
+                            ))}
+
+                            {details.landmarks.map((lm, i) => (
+                              <g key={`lm-${region.id}-${i}`}>
+                                {renderLandmarkShape(lm.shape, lm.x, lm.y, biomeColor)}
+                                <text
+                                  x={lm.x}
+                                  y={lm.y + 14}
+                                  textAnchor="middle"
+                                  fill="rgba(255,255,255,0.5)"
+                                  fontSize="5"
+                                  className="pointer-events-none select-none font-mono"
+                                >
+                                  {lm.label}
+                                </text>
+                              </g>
+                            ))}
+
+                            {details.buildings.map((b, i) => (
+                              <g key={`bld-${region.id}-${i}`}>
+                                {renderBuildingShape(b.type, b.x, b.y, b.w, b.h)}
+                                <text
+                                  x={b.x + b.w / 2}
+                                  y={b.y + b.h + 9}
+                                  textAnchor="middle"
+                                  fill="rgba(255,255,255,0.7)"
+                                  fontSize="5.5"
+                                  fontWeight="bold"
+                                  className="pointer-events-none select-none font-mono"
+                                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.9)" }}
+                                >
+                                  {b.label}
+                                </text>
+                              </g>
+                            ))}
+
+                            {entitiesInRegion.map((entity, idx) => {
+                              const pos = distributeEntitiesInRegion(poly.center, entityCount, idx);
+                              const markerColor = ENTITY_MARKER_COLORS[entity.type] || "#ef4444";
+                              return (
+                                <g key={entity.id} filter="url(#entityGlow)">
+                                  <circle cx={pos.x} cy={pos.y} r={6} fill={`${markerColor}22`} stroke={markerColor} strokeWidth="1" />
+                                  <circle cx={pos.x} cy={pos.y} r={2.5} fill={markerColor} opacity={0.9} />
+                                  <text
+                                    x={pos.x}
+                                    y={pos.y - 9}
+                                    textAnchor="middle"
+                                    fill="rgba(255,255,255,0.7)"
+                                    fontSize="5"
+                                    className="pointer-events-none select-none font-mono"
+                                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.9)" }}
+                                  >
+                                    {entity.name}
+                                  </text>
+                                </g>
+                              );
+                            })}
                           </g>
-                        );
-                      })}
+
+                          <text
+                            x={poly.center[0]}
+                            y={poly.center[1] - 30}
+                            textAnchor="middle"
+                            fill="white"
+                            fontSize="10"
+                            fontWeight="bold"
+                            className="font-serif pointer-events-none select-none"
+                            style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}
+                          >
+                            {region.nameRu}
+                          </text>
+
+                          {isCurrent && (
+                            <circle
+                              cx={poly.center[0]}
+                              cy={poly.center[1] - 38}
+                              r={3}
+                              fill="#10b981"
+                              className="animate-pulse"
+                            />
+                          )}
+                        </>
+                      )}
                     </g>
                   );
                 })}
@@ -440,8 +841,13 @@ export default function WorldMap() {
               </Button>
             </div>
 
-            <div className="absolute bottom-3 left-3 text-xs text-white/40 font-mono" data-testid="text-zoom-level">
-              {Math.round(zoom * 100)}%
+            <div className="absolute bottom-3 left-3 flex items-center gap-2">
+              <span className="text-xs text-white/40 font-mono" data-testid="text-zoom-level">
+                {Math.round(zoom * 100)}%
+              </span>
+              <span className="text-xs text-white/30 font-mono">
+                {lodLabel}
+              </span>
             </div>
 
             <div className="absolute top-3 right-3 flex flex-col gap-1 text-xs">

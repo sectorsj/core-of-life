@@ -161,7 +161,7 @@ export default function Dashboard() {
 
         <div className="lg:col-span-6 relative">
           <div className="absolute inset-0 bg-black/40 rounded-3xl border border-white/5 -z-10" />
-          <ChakraVisualizer chakras={character.chakras} />
+          <ChakraVisualizer chakras={character.chakras} isAbsorbing={!!activeAbsorption} />
         </div>
 
         <motion.div 

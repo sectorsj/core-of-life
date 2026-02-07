@@ -14,9 +14,10 @@ const CHAKRAS_CONFIG = [
 
 interface ChakraVisualizerProps {
   chakras: Character["chakras"];
+  isAbsorbing?: boolean;
 }
 
-export function ChakraVisualizer({ chakras }: ChakraVisualizerProps) {
+export function ChakraVisualizer({ chakras, isAbsorbing }: ChakraVisualizerProps) {
   return (
     <div className="relative flex flex-col items-center justify-center py-12 gap-6 h-full min-h-[500px]">
       <div className="absolute top-0 bottom-0 w-1 bg-gradient-to-b from-purple-500/20 via-green-500/20 to-red-500/20 blur-[1px]" />
@@ -51,13 +52,20 @@ export function ChakraVisualizer({ chakras }: ChakraVisualizerProps) {
                 opacity,
                 boxShadow: `0 0 ${value / 3}px var(--tw-shadow-color)`,
               }}
-              animate={{
+              animate={isAbsorbing ? {
+                scale: [1, 1.25, 1],
+                boxShadow: [
+                  `0 0 ${value / 3}px var(--tw-shadow-color)`,
+                  `0 0 ${value / 3 + 20}px var(--tw-shadow-color)`,
+                  `0 0 ${value / 3}px var(--tw-shadow-color)`,
+                ],
+              } : {
                 scale: [1, 1.05, 1],
               }}
               transition={{
-                duration: 4 + (index * 0.5),
+                duration: isAbsorbing ? 1.5 : 4 + (index * 0.5),
                 repeat: Infinity,
-                ease: "linear"
+                ease: "easeInOut",
               }}
             />
           </motion.div>

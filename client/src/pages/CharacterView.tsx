@@ -439,11 +439,17 @@ export default function CharacterView() {
                           if (!chakra) return null;
                           const level = value as number;
                           const maxLevel = 10;
+                          const isAbsorbing = !!activeAbsorption;
                           return (
                             <div key={key} className="flex items-center gap-3" data-testid={`chakra-${key}`}>
-                              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: chakra.color, boxShadow: `0 0 6px ${chakra.color}` }} />
+                              <motion.div
+                                className="w-2 h-2 rounded-full"
+                                style={{ backgroundColor: chakra.color, boxShadow: `0 0 6px ${chakra.color}` }}
+                                animate={isAbsorbing ? { boxShadow: [`0 0 6px ${chakra.color}`, `0 0 14px ${chakra.color}`, `0 0 6px ${chakra.color}`] } : {}}
+                                transition={isAbsorbing ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : {}}
+                              />
                               <span className="text-xs text-white/50 w-24">{chakra.label}</span>
-                              <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                              <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden relative">
                                 <motion.div
                                   className="h-full rounded-full"
                                   style={{ backgroundColor: chakra.color }}
@@ -451,8 +457,25 @@ export default function CharacterView() {
                                   animate={{ width: `${(level / maxLevel) * 100}%` }}
                                   transition={{ duration: 1, delay: 0.5 }}
                                 />
+                                {isAbsorbing && (
+                                  <motion.div
+                                    className="absolute inset-0 rounded-full"
+                                    style={{ background: `linear-gradient(90deg, transparent 60%, ${chakra.color})` }}
+                                    animate={{ opacity: [0, 0.6, 0] }}
+                                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                                  />
+                                )}
                               </div>
                               <span className="text-xs font-tech text-white/70 w-6 text-right">{level}</span>
+                              {isAbsorbing && (
+                                <motion.span
+                                  className="text-xs font-tech text-green-400 w-4"
+                                  animate={{ opacity: [0.3, 1, 0.3] }}
+                                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                                >
+                                  +
+                                </motion.span>
+                              )}
                             </div>
                           );
                         })}

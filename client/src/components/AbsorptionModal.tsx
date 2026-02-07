@@ -67,6 +67,19 @@ export function AbsorptionModal({ isOpen, onClose }: AbsorptionModalProps) {
                   />
                   <h4 className="text-xl font-display text-primary animate-pulse" data-testid="text-absorption-progress">Поглощение в процессе...</h4>
                   <p className="text-muted-foreground mt-2">Интеграция энергии окружения в ваше ядро.</p>
+                  {absorptions?.filter(a => !a.completed).map(abs => (
+                    <motion.div
+                      key={abs.id}
+                      className="mt-4 flex items-center justify-center gap-2"
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <Zap className="w-5 h-5 text-green-400 fill-green-400" />
+                      <span className="text-lg font-bold font-tech text-green-400" data-testid="text-modal-energy-gain">
+                        +{abs.durationMinutes * 2} Энергия
+                      </span>
+                    </motion.div>
+                  ))}
                 </div>
               ) : (
                 <div className="grid gap-4">

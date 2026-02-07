@@ -350,9 +350,20 @@ export default function CharacterView() {
 
                   <div className="flex items-center gap-4 mb-4">
                     <div className="flex items-center gap-2 text-amber-400" data-testid="text-energy">
-                      <Zap className="w-4 h-4 fill-amber-400" />
+                      <Zap className={`w-4 h-4 fill-amber-400 ${activeAbsorption ? "animate-pulse" : ""}`} />
                       <span className="font-bold font-tech">{character.energy}</span>
                       <span className="text-xs text-amber-400/60">Энергия</span>
+                      {activeAbsorption && (
+                        <motion.span
+                          className="text-xs font-bold font-tech text-green-400"
+                          initial={{ opacity: 0, y: 4 }}
+                          animate={{ opacity: [0.4, 1, 0.4], y: [4, 0, 4] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                          data-testid="text-energy-gain"
+                        >
+                          +{activeAbsorption.durationMinutes * 2}
+                        </motion.span>
+                      )}
                     </div>
                   </div>
 
@@ -464,22 +475,39 @@ export default function CharacterView() {
                 )}
 
                 {activeAbsorption && (
-                  <div className="bg-black/60 backdrop-blur-sm border border-accent/20 rounded-xl p-5">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 rounded-full bg-accent animate-ping" />
-                      <span className="text-accent text-sm font-bold" data-testid="text-absorbing">
-                        Резонанс: {REGION_LABELS[activeAbsorption.regionId] || activeAbsorption.regionId}
-                      </span>
+                  <motion.div
+                    className="bg-black/60 backdrop-blur-sm border border-accent/20 rounded-xl p-5"
+                    animate={{ borderColor: ["rgba(var(--accent), 0.2)", "rgba(var(--accent), 0.5)", "rgba(var(--accent), 0.2)"] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-accent animate-ping" />
+                        <span className="text-accent text-sm font-bold" data-testid="text-absorbing">
+                          Резонанс: {REGION_LABELS[activeAbsorption.regionId] || activeAbsorption.regionId}
+                        </span>
+                      </div>
+                      <motion.span
+                        className="text-sm font-bold font-tech text-green-400"
+                        animate={{ opacity: [0.5, 1, 0.5], scale: [0.95, 1.05, 0.95] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                        data-testid="text-resonance-gain"
+                      >
+                        +{activeAbsorption.durationMinutes * 2} Энергия
+                      </motion.span>
                     </div>
                     <div className="h-1.5 bg-black/50 rounded-full overflow-hidden">
                       <motion.div
                         className="h-full bg-accent rounded-full"
                         initial={{ width: "0%" }}
                         animate={{ width: "100%" }}
-                        transition={{ duration: 15, repeat: Infinity }}
+                        transition={{ duration: activeAbsorption.durationMinutes * 60, ease: "linear" }}
                       />
                     </div>
-                  </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {activeAbsorption.durationMinutes} мин. поглощение
+                    </p>
+                  </motion.div>
                 )}
               </motion.div>
 

@@ -95,8 +95,19 @@ export default function Dashboard() {
             )}
             <span className="text-white/20">|</span>
             <span className="flex items-center gap-1 text-accent" data-testid="text-energy">
-              <Zap className="w-4 h-4 fill-accent" />
+              <Zap className={`w-4 h-4 fill-accent ${activeAbsorption ? "animate-pulse" : ""}`} />
               {character.energy} Энергия
+              {activeAbsorption && (
+                <motion.span
+                  className="text-sm font-bold font-tech text-green-400 ml-1"
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: [0.4, 1, 0.4], y: [4, 0, 4] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  data-testid="text-energy-gain"
+                >
+                  +{activeAbsorption.durationMinutes * 2}
+                </motion.span>
+              )}
             </span>
           </div>
         </div>
@@ -162,19 +173,31 @@ export default function Dashboard() {
             <h3 className="font-display text-sm uppercase tracking-widest text-muted-foreground mb-4">Статус Резонанса</h3>
             {activeAbsorption ? (
               <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-accent animate-ping" />
-                  <span className="text-accent font-bold" data-testid="text-absorbing">Поглощение: {REGION_LABELS[activeAbsorption.regionId] || activeAbsorption.regionId}</span>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-accent animate-ping" />
+                    <span className="text-accent font-bold" data-testid="text-absorbing">Поглощение: {REGION_LABELS[activeAbsorption.regionId] || activeAbsorption.regionId}</span>
+                  </div>
+                  <motion.span
+                    className="text-sm font-bold font-tech text-green-400"
+                    animate={{ opacity: [0.5, 1, 0.5], scale: [0.95, 1.05, 0.95] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                    data-testid="text-resonance-gain"
+                  >
+                    +{activeAbsorption.durationMinutes * 2} Энергия
+                  </motion.span>
                 </div>
                 <div className="h-2 bg-black/50 rounded-full overflow-hidden w-full">
                   <motion.div 
                     className="h-full bg-accent"
                     initial={{ width: "0%" }}
                     animate={{ width: "100%" }}
-                    transition={{ duration: 15, repeat: Infinity }}
+                    transition={{ duration: activeAbsorption.durationMinutes * 60, ease: "linear" }}
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Синхронизация энергетических частот...</p>
+                <p className="text-xs text-muted-foreground">
+                  Синхронизация энергетических частот... {activeAbsorption.durationMinutes} мин.
+                </p>
               </div>
             ) : (
               <div className="text-center py-6 text-muted-foreground">

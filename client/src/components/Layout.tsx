@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { LogOut, User as UserIcon, Hexagon, Activity } from "lucide-react";
+import { LogOut, User as UserIcon, Hexagon, Activity, Map, Home } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
@@ -29,6 +29,19 @@ export function Layout({ children }: LayoutProps) {
           </Link>
 
           <nav className="flex items-center gap-6">
+            <div className="hidden md:flex items-center gap-4">
+              <Link href="/" data-testid="nav-dashboard">
+                <Button variant={location === "/" ? "secondary" : "ghost"} size="sm" className="font-display text-xs">
+                  <Home className="w-4 h-4 mr-1" /> Персонаж
+                </Button>
+              </Link>
+              <Link href="/world" data-testid="nav-world">
+                <Button variant={location === "/world" ? "secondary" : "ghost"} size="sm" className="font-display text-xs">
+                  <Map className="w-4 h-4 mr-1" /> Мир
+                </Button>
+              </Link>
+            </div>
+
             {user ? (
               <>
                 <div className="hidden md:flex items-center gap-6 text-sm font-display text-muted-foreground">

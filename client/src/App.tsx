@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import NotFound from "@/pages/NotFound";
 import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
+import WorldMap from "@/pages/WorldMap";
 
 function Router() {
   const { user, isLoading } = useAuth();
@@ -25,6 +26,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
+      <Route path="/world" component={WorldMap} />
       <Route path="/landing" component={Landing} />
       <Route component={NotFound} />
     </Switch>

@@ -38,13 +38,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCharacter(insertCharacter: InsertCharacter): Promise<Character> {
-    const [char] = await db.insert(characters).values(insertCharacter).returning();
+    const [char] = await db.insert(characters).values(insertCharacter as any).returning();
     return char;
   }
 
   async updateCharacter(id: number, updates: UpdateCharacterRequest): Promise<Character> {
     const [char] = await db.update(characters)
-      .set(updates)
+      .set(updates as any)
       .where(eq(characters.id, id))
       .returning();
     return char;

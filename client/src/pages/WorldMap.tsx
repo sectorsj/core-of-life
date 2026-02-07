@@ -6,6 +6,7 @@ import { useCharacter } from "@/hooks/use-characters";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Loader2, MapPin, Compass, Sun, Moon, Cloud, CloudRain, CloudLightning, Thermometer, Footprints, X, Skull, Heart, Zap, ZoomIn, ZoomOut, Locate } from "lucide-react";
 import type { Region, Entity } from "@shared/schema";
 
@@ -400,9 +401,28 @@ export default function WorldMap() {
   }, []);
 
   const handleResetView = useCallback(() => {
+    if (character?.regionId) {
+      const poly = REGION_POLYGONS[character.regionId];
+      if (poly && svgContainerRef.current) {
+        const rect = svgContainerRef.current.getBoundingClientRect();
+        const viewBoxW = 1050;
+        const viewBoxH = 520;
+        const scaleX = rect.width / viewBoxW;
+        const scaleY = rect.height / viewBoxH;
+        const scale = Math.min(scaleX, scaleY);
+        const targetZoom = 1.2;
+        const viewCenterX = (rect.width / 2) / scale;
+        const viewCenterY = (rect.height / 2) / scale;
+        const offsetX = (viewCenterX - poly.center[0]) * targetZoom;
+        const offsetY = (viewCenterY - poly.center[1]) * targetZoom;
+        setZoom(targetZoom);
+        setPan({ x: offsetX, y: offsetY });
+        return;
+      }
+    }
     setZoom(1);
     setPan({ x: 0, y: 0 });
-  }, []);
+  }, [character?.regionId]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -792,6 +812,8 @@ export default function WorldMap() {
                   const details = REGION_DETAILS[region.id];
                   const biomeColor = BIOME_ICON_COLOR[region.biome] || "#ffffff";
 
+                  const regionTooltip = `${region.nameRu}${isCurrent ? " (вы здесь)" : isConnected ? " (доступно)" : ""} — ${ENERGY_TYPE_RU[region.energyType] || region.energyType}, опасность: ${region.hazardLevel}/5`;
+
                   return (
                     <g key={region.id} onClick={() => setSelectedRegion(region)} className="cursor-pointer" data-testid={`map-region-${region.id}`}>
 
@@ -807,7 +829,9 @@ export default function WorldMap() {
                         strokeOpacity={isCurrent ? (lod === "far" ? 0.5 : 1) : isConnected ? 0.6 : (lod === "far" ? 0.1 : 0.2)}
                         filter={isCurrent && lod !== "far" ? "url(#glow)" : undefined}
                         strokeLinejoin="round"
-                      />
+                      >
+                        <title>{regionTooltip}</title>
+                      </polygon>
 
                       {lod === "far" && (
                         <g filter={isCurrent ? "url(#glow)" : "url(#softGlow)"}>
@@ -1015,15 +1039,30 @@ export default function WorldMap() {
             </svg>
 
             <div className="absolute bottom-3 right-3 flex flex-col gap-1">
-              <Button size="icon" variant="ghost" onClick={handleZoomIn} className="bg-black/50 text-white/80" data-testid="button-zoom-in">
-                <ZoomIn className="w-4 h-4" />
-              </Button>
-              <Button size="icon" variant="ghost" onClick={handleZoomOut} className="bg-black/50 text-white/80" data-testid="button-zoom-out">
-                <ZoomOut className="w-4 h-4" />
-              </Button>
-              <Button size="icon" variant="ghost" onClick={handleResetView} className="bg-black/50 text-white/80" data-testid="button-reset-view">
-                <Locate className="w-4 h-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="icon" variant="ghost" onClick={handleZoomIn} className="bg-black/50 text-white/80" data-testid="button-zoom-in">
+                    <ZoomIn className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left">Приблизить</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="icon" variant="ghost" onClick={handleZoomOut} className="bg-black/50 text-white/80" data-testid="button-zoom-out">
+                    <ZoomOut className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left">Отдалить</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="icon" variant="ghost" onClick={handleResetView} className="bg-black/50 text-white/80" data-testid="button-reset-view">
+                    <Locate className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left">Центрировать на персонаже</TooltipContent>
+              </Tooltip>
             </div>
 
             <div className="absolute bottom-3 left-3 flex items-center gap-2">
@@ -1036,18 +1075,33 @@ export default function WorldMap() {
             </div>
 
             <div className="absolute top-3 right-3 flex flex-col gap-1 text-xs">
-              <div className="flex items-center gap-1.5 bg-black/40 px-2 py-1 rounded">
-                <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />
-                <span className="text-white/60">{ENTITY_TYPE_RU.creature}</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-black/40 px-2 py-1 rounded">
-                <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
-                <span className="text-white/60">{ENTITY_TYPE_RU.object}</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-black/40 px-2 py-1 rounded">
-                <span className="w-2 h-2 rounded-full bg-yellow-500 inline-block" />
-                <span className="text-white/60">{ENTITY_TYPE_RU.hazard}</span>
-              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-1.5 bg-black/40 px-2 py-1 rounded cursor-default" data-testid="legend-creature" tabIndex={0}>
+                    <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />
+                    <span className="text-white/60">{ENTITY_TYPE_RU.creature}</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="left">Живые существа в регионе</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-1.5 bg-black/40 px-2 py-1 rounded cursor-default" data-testid="legend-object" tabIndex={0}>
+                    <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+                    <span className="text-white/60">{ENTITY_TYPE_RU.object}</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="left">Интерактивные объекты</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-1.5 bg-black/40 px-2 py-1 rounded cursor-default" data-testid="legend-hazard" tabIndex={0}>
+                    <span className="w-2 h-2 rounded-full bg-yellow-500 inline-block" />
+                    <span className="text-white/60">{ENTITY_TYPE_RU.hazard}</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="left">Опасные зоны и ловушки</TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </div>
@@ -1065,9 +1119,14 @@ export default function WorldMap() {
                   <CardContent className="p-5">
                     <div className="flex justify-between items-start mb-3">
                       <h3 className="text-xl font-serif font-bold text-white" data-testid="text-region-name">{selectedRegion.nameRu}</h3>
-                      <Button size="icon" variant="ghost" onClick={() => setSelectedRegion(null)} data-testid="button-close-region">
-                        <X className="w-4 h-4" />
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="icon" variant="ghost" onClick={() => setSelectedRegion(null)} data-testid="button-close-region">
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="left">Закрыть</TooltipContent>
+                      </Tooltip>
                     </div>
 
                     <p className="text-sm text-muted-foreground mb-4 font-tech">{selectedRegion.descriptionRu}</p>
@@ -1086,15 +1145,22 @@ export default function WorldMap() {
                         <h4 className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Существа в регионе</h4>
                         <div className="space-y-2 max-h-40 overflow-y-auto">
                           {regionEntities.map(entity => (
-                            <div key={entity.id} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm" data-testid={`entity-${entity.id}`}>
-                              <div className="flex items-center gap-2">
-                                {entity.type === "creature" ? <Skull className="w-3 h-3 text-red-400" /> :
-                                 entity.type === "object" ? <Heart className="w-3 h-3 text-green-400" /> :
-                                 <Zap className="w-3 h-3 text-yellow-400" />}
-                                <span className="text-white/80">{entity.name}</span>
-                              </div>
-                              <span className="text-xs text-muted-foreground">{entity.health} HP</span>
-                            </div>
+                            <Tooltip key={entity.id}>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm cursor-default" data-testid={`entity-${entity.id}`}>
+                                  <div className="flex items-center gap-2">
+                                    {entity.type === "creature" ? <Skull className="w-3 h-3 text-red-400" /> :
+                                     entity.type === "object" ? <Heart className="w-3 h-3 text-green-400" /> :
+                                     <Zap className="w-3 h-3 text-yellow-400" />}
+                                    <span className="text-white/80">{entity.name}</span>
+                                  </div>
+                                  <span className="text-xs text-muted-foreground">{entity.health} HP</span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent side="left">
+                                {ENTITY_TYPE_RU[entity.type] || entity.type} — {entity.state} | Масса: {entity.mass}
+                              </TooltipContent>
+                            </Tooltip>
                           ))}
                         </div>
                       </div>
@@ -1102,21 +1168,31 @@ export default function WorldMap() {
 
                     {character?.regionId === selectedRegion.id ? (
                       <div className="text-center py-2">
-                        <Badge className="bg-primary/20 text-primary border-primary/30">Вы здесь</Badge>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span><Badge className="bg-primary/20 text-primary border-primary/30">Вы здесь</Badge></span>
+                          </TooltipTrigger>
+                          <TooltipContent>Ваш персонаж находится в этом регионе</TooltipContent>
+                        </Tooltip>
                       </div>
                     ) : connectedIds.includes(selectedRegion.id) ? (
-                      <Button
-                        onClick={() => handleTravel(selectedRegion.id)}
-                        disabled={travel.isPending}
-                        className="w-full bg-primary hover:bg-primary/90"
-                        data-testid="button-travel"
-                      >
-                        {travel.isPending ? (
-                          <span className="flex items-center gap-2"><Loader2 className="animate-spin w-4 h-4" /> Перемещение...</span>
-                        ) : (
-                          <span className="flex items-center gap-2"><Footprints className="w-4 h-4" /> Переместиться</span>
-                        )}
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={() => handleTravel(selectedRegion.id)}
+                            disabled={travel.isPending}
+                            className="w-full bg-primary hover:bg-primary/90"
+                            data-testid="button-travel"
+                          >
+                            {travel.isPending ? (
+                              <span className="flex items-center gap-2"><Loader2 className="animate-spin w-4 h-4" /> Перемещение...</span>
+                            ) : (
+                              <span className="flex items-center gap-2"><Footprints className="w-4 h-4" /> Переместиться</span>
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Переместить персонажа в этот регион</TooltipContent>
+                      </Tooltip>
                     ) : (
                       <div className="text-center py-2">
                         <p className="text-xs text-muted-foreground">Этот регион недоступен из текущего местоположения</p>
@@ -1150,20 +1226,24 @@ export default function WorldMap() {
                     const r = regions?.find(reg => reg.id === id);
                     if (!r) return null;
                     return (
-                      <button
-                        key={id}
-                        onClick={() => setSelectedRegion(r)}
-                        className="w-full flex items-center justify-between p-3 bg-white/5 rounded-lg hover-elevate transition-colors text-left"
-                        data-testid={`path-${id}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: r.color }} />
-                          <span className="text-white/80 text-sm font-tech">{r.nameRu}</span>
-                        </div>
-                        <Badge variant="outline" className="text-xs">
-                          {r.hazardLevel}/5
-                        </Badge>
-                      </button>
+                      <Tooltip key={id}>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => setSelectedRegion(r)}
+                            className="w-full flex items-center justify-between p-3 bg-white/5 rounded-lg hover-elevate transition-colors text-left"
+                            data-testid={`path-${id}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: r.color }} />
+                              <span className="text-white/80 text-sm font-tech">{r.nameRu}</span>
+                            </div>
+                            <Badge variant="outline" className="text-xs">
+                              {r.hazardLevel}/5
+                            </Badge>
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="left">{r.descriptionRu}</TooltipContent>
+                      </Tooltip>
                     );
                   })}
                 </div>

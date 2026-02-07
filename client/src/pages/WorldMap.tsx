@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { Loader2, MapPin, Compass, Sun, Moon, Cloud, CloudRain, CloudLightning, Thermometer, Footprints, X, Skull, Heart, Zap, ZoomIn, ZoomOut, Locate } from "lucide-react";
+import { Loader2, MapPin, Compass, Sun, Moon, Cloud, CloudRain, CloudLightning, Thermometer, Footprints, X, Skull, Heart, Zap, ZoomIn, ZoomOut, Locate, Maximize2 } from "lucide-react";
 import type { Region, Entity } from "@shared/schema";
 
 const WEATHER_ICONS: Record<string, typeof Sun> = {
@@ -400,7 +400,7 @@ export default function WorldMap() {
     setZoom(z => Math.max(z - ZOOM_STEP, MIN_ZOOM));
   }, []);
 
-  const handleResetView = useCallback(() => {
+  const handleCenterOnCharacter = useCallback(() => {
     if (character?.regionId) {
       const poly = REGION_POLYGONS[character.regionId];
       if (poly && svgContainerRef.current) {
@@ -410,19 +410,21 @@ export default function WorldMap() {
         const scaleX = rect.width / viewBoxW;
         const scaleY = rect.height / viewBoxH;
         const scale = Math.min(scaleX, scaleY);
-        const targetZoom = 1.2;
+        const currentZoom = zoom;
         const viewCenterX = (rect.width / 2) / scale;
         const viewCenterY = (rect.height / 2) / scale;
-        const offsetX = (viewCenterX - poly.center[0]) * targetZoom;
-        const offsetY = (viewCenterY - poly.center[1]) * targetZoom;
-        setZoom(targetZoom);
+        const offsetX = (viewCenterX - poly.center[0]) * currentZoom;
+        const offsetY = (viewCenterY - poly.center[1]) * currentZoom;
         setPan({ x: offsetX, y: offsetY });
         return;
       }
     }
-    setZoom(1);
+  }, [character?.regionId, zoom]);
+
+  const handleFullMapView = useCallback(() => {
+    setZoom(MIN_ZOOM);
     setPan({ x: 0, y: 0 });
-  }, [character?.regionId]);
+  }, []);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -1057,11 +1059,19 @@ export default function WorldMap() {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button size="icon" variant="ghost" onClick={handleResetView} className="bg-black/50 text-white/80" data-testid="button-reset-view">
+                  <Button size="icon" variant="ghost" onClick={handleCenterOnCharacter} className="bg-black/50 text-white/80" data-testid="button-center-character">
                     <Locate className="w-4 h-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="left">Центрировать на персонаже</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="icon" variant="ghost" onClick={handleFullMapView} className="bg-black/50 text-white/80" data-testid="button-full-map">
+                    <Maximize2 className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left">Показать всю карту</TooltipContent>
               </Tooltip>
             </div>
 

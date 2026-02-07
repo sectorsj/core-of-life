@@ -9,6 +9,8 @@ Key features include:
 - Seven-chakra energy system with visual representation
 - Energy absorption mechanics tied to world regions
 - Bioluminescent/organic visual aesthetic with Framer Motion animations
+- AI-generated manhwa-style scene illustrations with 5 camera angles (panorama, closeup, aerial, dramatic, POV)
+- Image caching by region/angle/time/weather to minimize generation costs
 
 ## User Preferences
 

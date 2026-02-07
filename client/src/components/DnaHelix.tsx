@@ -6,14 +6,11 @@ interface DnaHelixProps {
 }
 
 export function DnaHelix({ genome }: DnaHelixProps) {
-  // Parse genome string into pairs, e.g. "ATAT|CGCG" -> [['A','T'], ['A','T']...]
   const pairs = useMemo(() => {
-    // Mock parsing logic if genome is just a string
     const safeGenome = genome || "ATCG";
     const result = [];
     const bases = safeGenome.replace(/[^ATCG]/g, '').split('');
     
-    // Create base pairs
     for (let i = 0; i < Math.min(bases.length, 20); i++) {
       const base1 = bases[i];
       let base2 = '';
@@ -29,7 +26,7 @@ export function DnaHelix({ genome }: DnaHelixProps) {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center py-4 overflow-hidden relative">
       <h3 className="absolute top-2 left-4 text-xs font-display text-muted-foreground uppercase tracking-widest">
-        Genome Sequence
+        Последовательность Генома
       </h3>
       
       <div className="space-y-3 relative z-10 w-full max-w-[120px]">
@@ -41,7 +38,6 @@ export function DnaHelix({ genome }: DnaHelixProps) {
             animate={{ opacity: 1 }}
             transition={{ delay: i * 0.05 }}
           >
-            {/* Left Base */}
             <motion.div 
               className="w-6 h-6 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-[8px] text-primary font-mono shadow-[0_0_10px_rgba(16,185,129,0.3)]"
               animate={{ x: [0, 8, 0] }}
@@ -50,10 +46,8 @@ export function DnaHelix({ genome }: DnaHelixProps) {
               {pair[0]}
             </motion.div>
 
-            {/* Connection Bond */}
             <div className="h-[1px] bg-primary/30 flex-1 mx-1 opacity-40" />
 
-            {/* Right Base */}
             <motion.div 
               className="w-6 h-6 rounded-full bg-secondary/40 border border-secondary/50 flex items-center justify-center text-[8px] text-secondary-foreground font-mono shadow-[0_0_10px_rgba(139,92,246,0.3)]"
               animate={{ x: [0, -8, 0] }}
@@ -65,7 +59,6 @@ export function DnaHelix({ genome }: DnaHelixProps) {
         ))}
       </div>
       
-      {/* Background decoration */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent pointer-events-none" />
     </div>
   );

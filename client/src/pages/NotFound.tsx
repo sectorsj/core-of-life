@@ -8,14 +8,14 @@ export default function NotFound() {
         <div className="flex justify-center mb-4">
           <AlertTriangle className="h-20 w-20 text-destructive/80" />
         </div>
-        <h1 className="text-4xl font-display font-bold text-white">404: Void Space</h1>
-        <p className="text-muted-foreground font-tech text-lg">
-          The coordinates you are attempting to access do not exist in this reality layer.
+        <h1 className="text-4xl font-display font-bold text-white" data-testid="text-404-title">404: Пустота</h1>
+        <p className="text-muted-foreground font-tech text-lg" data-testid="text-404-message">
+          Координаты, к которым вы пытаетесь получить доступ, не существуют в этом слое реальности.
         </p>
         
         <div className="pt-6">
-          <Link href="/" className="inline-flex h-12 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 font-display tracking-widest uppercase">
-            Return to Core
+          <Link href="/" className="inline-flex h-12 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 font-display tracking-widest uppercase" data-testid="link-return-to-core">
+            Вернуться в Ядро
           </Link>
         </div>
       </div>

@@ -11,17 +11,16 @@ interface AbsorptionModalProps {
 }
 
 const REGIONS = [
-  { id: "forest_ancient", name: "Ancient Forest", color: "green", desc: "Abundant life energy. Good for Heart Chakra." },
-  { id: "volcano_dormant", name: "Dormant Volcano", color: "red", desc: "Raw terrestrial heat. Strengthens Root Chakra." },
-  { id: "crystal_cave", name: "Crystal Caves", color: "indigo", desc: "Resonant frequencies. Clarifies Third Eye." },
-  { id: "sky_sanctuary", name: "Sky Sanctuary", color: "cyan", desc: "Pure aether. Enhances Throat Chakra." },
+  { id: "forest_ancient", name: "Древний Лес", color: "green", desc: "Изобилие жизненной энергии. Полезно для Сердечной Чакры." },
+  { id: "volcano_dormant", name: "Спящий Вулкан", color: "red", desc: "Сырой жар земли. Укрепляет Корневую Чакру." },
+  { id: "crystal_cave", name: "Хрустальные Пещеры", color: "indigo", desc: "Резонансные частоты. Проясняет Третий Глаз." },
+  { id: "sky_sanctuary", name: "Небесное Святилище", color: "cyan", desc: "Чистый эфир. Усиливает Горловую Чакру." },
 ];
 
 export function AbsorptionModal({ isOpen, onClose }: AbsorptionModalProps) {
   const absorbMutation = useAbsorbEnergy();
   const { data: absorptions } = useEnergyStatus();
   
-  // Simple check if already absorbing (mock logic - in real app would check status)
   const isAbsorbing = absorptions?.some(a => !a.completed);
 
   const handleAbsorb = (regionId: string, color: string) => {
@@ -52,9 +51,9 @@ export function AbsorptionModal({ isOpen, onClose }: AbsorptionModalProps) {
             <div className="glass-panel p-6 rounded-2xl relative overflow-hidden border border-primary/20">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-serif text-white flex items-center gap-2">
-                  <Zap className="text-accent" /> Environmental Resonance
+                  <Zap className="text-accent" /> Резонанс Окружения
                 </h3>
-                <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-white/10">
+                <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-white/10" data-testid="button-close-modal">
                   <X className="w-5 h-5" />
                 </Button>
               </div>
@@ -66,8 +65,8 @@ export function AbsorptionModal({ isOpen, onClose }: AbsorptionModalProps) {
                     transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                     className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"
                   />
-                  <h4 className="text-xl font-display text-primary animate-pulse">Absorption in Progress...</h4>
-                  <p className="text-muted-foreground mt-2">Integrating environmental energy into your core.</p>
+                  <h4 className="text-xl font-display text-primary animate-pulse" data-testid="text-absorption-progress">Поглощение в процессе...</h4>
+                  <p className="text-muted-foreground mt-2">Интеграция энергии окружения в ваше ядро.</p>
                 </div>
               ) : (
                 <div className="grid gap-4">
@@ -77,6 +76,7 @@ export function AbsorptionModal({ isOpen, onClose }: AbsorptionModalProps) {
                       onClick={() => handleAbsorb(region.id, region.color)}
                       disabled={absorbMutation.isPending}
                       className="group relative p-4 rounded-xl border border-white/5 bg-black/40 hover:bg-white/5 transition-all duration-300 text-left overflow-hidden"
+                      data-testid={`button-region-${region.id}`}
                     >
                       <div className={cn(
                         "absolute left-0 top-0 bottom-0 w-1 transition-all duration-300 group-hover:w-full group-hover:opacity-10 opacity-0",

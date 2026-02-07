@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { useCreateCharacter } from "@/hooks/use-characters";
 import { CreateCharacterRequest } from "@shared/schema";
 
-// Helper to generate a random mock genome
 const generateRandomGenome = () => {
   const bases = ['A', 'T', 'C', 'G'];
   let genome = "";
@@ -22,7 +21,6 @@ const generateRandomGenome = () => {
   return genome;
 };
 
-// Default random starting attributes
 const generateStartingAttributes = () => ({
   strength: Math.floor(Math.random() * 5) + 8,
   dexterity: Math.floor(Math.random() * 5) + 8,
@@ -33,7 +31,7 @@ const generateStartingAttributes = () => ({
 });
 
 const formSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
+  name: z.string().min(2, "Имя должно содержать минимум 2 символа"),
   selfTitle: z.string().optional(),
 });
 
@@ -45,7 +43,7 @@ export function CreateCoreForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      selfTitle: "Novice Soul",
+      selfTitle: "Начинающая Душа",
     }
   });
 
@@ -73,7 +71,6 @@ export function CreateCoreForm() {
 
   return (
     <div className="w-full max-w-md mx-auto p-8 rounded-2xl glass-panel relative overflow-hidden">
-      {/* Decorative background glow */}
       <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/20 blur-3xl rounded-full" />
       <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-secondary/20 blur-3xl rounded-full" />
 
@@ -86,35 +83,37 @@ export function CreateCoreForm() {
           >
             <Dna className="w-8 h-8 text-primary" />
           </motion.div>
-          <h2 className="text-3xl font-serif text-white mb-2">Initialize Core</h2>
-          <p className="text-muted-foreground font-tech">Define your identity to begin the cycle.</p>
+          <h2 className="text-3xl font-serif text-white mb-2">Инициализация Ядра</h2>
+          <p className="text-muted-foreground font-tech">Определи свою личность, чтобы начать цикл.</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-xs uppercase tracking-widest text-primary/80">Designation (Name)</Label>
+            <Label htmlFor="name" className="text-xs uppercase tracking-widest text-primary/80">Обозначение (Имя)</Label>
             <Input 
               id="name" 
               {...register("name")}
               className="bg-black/40 border-primary/20 focus:border-primary focus:ring-primary/20 font-display text-lg tracking-wide"
-              placeholder="e.g. Kael"
+              placeholder="напр. Каэль"
+              data-testid="input-character-name"
             />
             {errors.name && <p className="text-destructive text-xs">{errors.name.message}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="selfTitle" className="text-xs uppercase tracking-widest text-secondary/80">Self-Identification (Title)</Label>
+            <Label htmlFor="selfTitle" className="text-xs uppercase tracking-widest text-secondary/80">Самоидентификация (Титул)</Label>
             <Input 
               id="selfTitle" 
               {...register("selfTitle")}
               className="bg-black/40 border-secondary/20 focus:border-secondary focus:ring-secondary/20 font-serif italic text-lg"
-              placeholder="e.g. Flame Walker"
+              placeholder="напр. Странник Огня"
+              data-testid="input-self-title"
             />
           </div>
 
           <div className="p-4 bg-black/30 rounded-lg border border-white/5">
-            <h4 className="text-xs uppercase text-muted-foreground mb-2">Detected Genome Signature</h4>
-            <div className="font-mono text-[10px] text-primary break-all opacity-70 tracking-tighter leading-tight">
+            <h4 className="text-xs uppercase text-muted-foreground mb-2">Обнаруженная Сигнатура Генома</h4>
+            <div className="font-mono text-[10px] text-primary break-all opacity-70 tracking-tighter leading-tight" data-testid="text-genome">
               {genome}
             </div>
           </div>
@@ -123,11 +122,12 @@ export function CreateCoreForm() {
             type="submit" 
             disabled={createCharacter.isPending}
             className="w-full h-12 text-lg font-display uppercase tracking-widest bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all duration-300"
+            data-testid="button-create-character"
           >
             {createCharacter.isPending ? (
-              <span className="flex items-center gap-2"><Loader2 className="animate-spin" /> Materializing...</span>
+              <span className="flex items-center gap-2"><Loader2 className="animate-spin" /> Материализация...</span>
             ) : (
-              "Manifest Existence"
+              "Воплотить Существование"
             )}
           </Button>
         </form>

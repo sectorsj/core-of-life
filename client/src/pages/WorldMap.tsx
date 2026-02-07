@@ -403,18 +403,11 @@ export default function WorldMap() {
   const handleCenterOnCharacter = useCallback(() => {
     if (character?.regionId) {
       const poly = REGION_POLYGONS[character.regionId];
-      if (poly && svgContainerRef.current) {
-        const rect = svgContainerRef.current.getBoundingClientRect();
-        const viewBoxW = 1050;
-        const viewBoxH = 520;
-        const scaleX = rect.width / viewBoxW;
-        const scaleY = rect.height / viewBoxH;
-        const scale = Math.min(scaleX, scaleY);
-        const currentZoom = zoom;
-        const viewCenterX = (rect.width / 2) / scale;
-        const viewCenterY = (rect.height / 2) / scale;
-        const offsetX = (viewCenterX - poly.center[0]) * currentZoom;
-        const offsetY = (viewCenterY - poly.center[1]) * currentZoom;
+      if (poly) {
+        const viewCenterX = 525;
+        const viewCenterY = 260;
+        const offsetX = (viewCenterX - poly.center[0]) * zoom * zoom;
+        const offsetY = (viewCenterY - poly.center[1]) * zoom * zoom;
         setPan({ x: offsetX, y: offsetY });
         return;
       }
